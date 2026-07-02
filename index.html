@@ -1,0 +1,1195 @@
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Amazora — Shop Everything</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            amazon: {
+              dark: '#131921',
+              light: '#232f3e',
+              orange: '#febd69',
+              cta: '#ff9900',
+              blue: '#007185'
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    body { font-family: 'Inter', sans-serif; }
+    .scrollbar-hide::-webkit-scrollbar { display: none; }
+    .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+    .product-card { transition: transform .2s, box-shadow .2s; }
+    .product-card:hover { transform: translateY(-4px); box-shadow: 0 12px 24px rgba(0,0,0,0.12); }
+    .line-clamp-2 { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+    .flash-blink { animation: flash 2s infinite; }
+    @keyframes flash { 0%,100%{opacity:1;} 50%{opacity:.7;} }
+  </style>
+</head>
+<body class="bg-white text-gray-900">
+
+  <!-- Header -->
+  <header class="sticky top-0 z-50 bg-amazon-dark text-white shadow">
+    <div class="max-w-7xl mx-auto px-4 py-3 flex items-center gap-4">
+      <button onclick="toggleMobileMenu()" class="lg:hidden text-white text-xl"><i class="fas fa-bars"></i></button>
+      <a href="#" onclick="navigate('home')" class="flex items-center gap-2 flex-shrink-0">
+        <i class="fas fa-shopping-bag text-amazon-orange text-2xl"></i>
+        <span class="text-xl font-bold tracking-tight">Amazora</span>
+      </a>
+
+      <!-- Desktop Search -->
+      <div id="searchWrap" class="hidden md:flex flex-1 max-w-2xl relative mx-4">
+        <select id="searchCategory" class="bg-gray-100 text-gray-800 text-sm rounded-l-md px-3 border-r border-gray-300 outline-none">
+          <option value="All">All</option>
+        </select>
+        <input id="searchInput" type="text" class="w-full py-2 px-3 text-gray-900 outline-none" placeholder="Search products, brands and more" />
+        <button onclick="handleSearch()" class="bg-amazon-orange text-amazon-dark px-4 rounded-r-md hover:bg-orange-400"><i class="fas fa-search"></i></button>
+        <div id="searchSuggestions" class="absolute top-full left-0 right-0 bg-white text-gray-800 shadow-lg rounded-b-md hidden z-50 border border-t-0"></div>
+      </div>
+
+      <!-- Right Actions -->
+      <div class="flex items-center gap-4 ml-auto">
+        <button onclick="navigate('dashboard')" class="hidden md:flex flex-col items-center hover:text-amazon-orange leading-tight">
+          <span class="text-xs">Hello, Guest</span>
+          <span class="text-sm font-bold">Account</span>
+        </button>
+        <button onclick="navigate('dashboard')" class="hidden md:flex flex-col items-center hover:text-amazon-orange leading-tight">
+          <span class="text-xs">Returns</span>
+          <span class="text-sm font-bold">& Orders</span>
+        </button>
+        <button onclick="navigate('cart')" class="relative hover:text-amazon-orange">
+          <i class="fas fa-shopping-cart text-xl"></i>
+          <span id="cartCount" class="absolute -top-2 -right-2 bg-amazon-orange text-amazon-dark text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center">0</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Mobile Search -->
+    <div class="md:hidden px-4 pb-3">
+      <div class="flex">
+        <input id="mobileSearchInput" type="text" class="w-full py-2 px-3 text-gray-900 rounded-l-md outline-none" placeholder="Search Amazora" />
+        <button onclick="handleSearch()" class="bg-amazon-orange text-amazon-dark px-4 rounded-r-md"><i class="fas fa-search"></i></button>
+      </div>
+    </div>
+
+    <!-- Sub-nav -->
+    <div class="hidden lg:flex bg-amazon-light text-white text-sm px-4 py-2 items-center gap-6">
+      <button class="flex items-center gap-1 hover:text-amazon-orange font-semibold"><i class="fas fa-bars"></i> All</button>
+      <a onclick="filterByCategory('Electronics')" class="hover:text-amazon-orange cursor-pointer">Electronics</a>
+      <a onclick="filterByCategory('Fashion')" class="hover:text-amazon-orange cursor-pointer">Fashion</a>
+      <a onclick="filterByCategory('Home')" class="hover:text-amazon-orange cursor-pointer">Home</a>
+      <a onclick="filterByCategory('Books')" class="hover:text-amazon-orange cursor-pointer">Books</a>
+      <a onclick="filterByCategory('Sports')" class="hover:text-amazon-orange cursor-pointer">Sports</a>
+      <a onclick="filterByCategory('Beauty')" class="hover:text-amazon-orange cursor-pointer">Beauty</a>
+      <a onclick="navigate('admin')" class="ml-auto hover:text-amazon-orange cursor-pointer">Admin</a>
+    </div>
+  </header>
+
+  <!-- Mobile Menu -->
+  <div id="mobileMenu" class="fixed inset-0 z-50 hidden">
+    <div class="absolute inset-0 bg-black/50" onclick="toggleMobileMenu()"></div>
+    <div id="mobileMenuPanel" class="absolute left-0 top-0 h-full w-64 bg-white shadow-lg transform -translate-x-full transition-transform p-4">
+      <div class="flex justify-between items-center mb-6">
+        <span class="font-bold text-lg">Menu</span>
+        <button onclick="toggleMobileMenu()" class="text-gray-600"><i class="fas fa-times text-xl"></i></button>
+      </div>
+      <nav class="space-y-3 text-sm font-medium">
+        <a onclick="navigate('home'); toggleMobileMenu()" class="block hover:text-amazon-blue cursor-pointer">Home</a>
+        <a onclick="navigate('dashboard'); toggleMobileMenu()" class="block hover:text-amazon-blue cursor-pointer">Your Account</a>
+        <a onclick="navigate('cart'); toggleMobileMenu()" class="block hover:text-amazon-blue cursor-pointer">Cart</a>
+        <a onclick="navigate('orders'); toggleMobileMenu()" class="block hover:text-amazon-blue cursor-pointer">Orders</a>
+        <a onclick="navigate('admin'); toggleMobileMenu()" class="block hover:text-amazon-blue cursor-pointer">Admin Panel</a>
+      </nav>
+    </div>
+  </div>
+
+  <main>
+    <!-- HOME -->
+    <section id="page-home" class="page-section">
+      <!-- Hero -->
+      <div class="relative bg-gradient-to-r from-amazon-light to-gray-900 text-white overflow-hidden">
+        <div class="absolute inset-0 opacity-25 bg-[url('https://images.unsplash.com/photo-1607082348824-0a96f2a4b9da?auto=format&fit=crop&w=1600&q=80')] bg-cover bg-center"></div>
+        <div class="relative max-w-7xl mx-auto px-4 py-12 md:py-20">
+          <div class="max-w-2xl">
+            <span class="inline-block bg-amazon-orange text-amazon-dark text-xs font-bold px-2 py-1 rounded mb-3">Mega Sale</span>
+            <h1 class="text-3xl md:text-5xl font-bold mb-4">Unbeatable deals on everything you love</h1>
+            <p class="text-gray-200 mb-6">Free shipping on millions of items. New arrivals, flash deals, and AI-curated picks just for you.</p>
+            <div class="flex flex-wrap gap-3">
+              <button onclick="filterDeals()" class="bg-amazon-orange hover:bg-orange-400 text-amazon-dark font-bold py-2.5 px-6 rounded-md">Shop Deals</button>
+              <button onclick="scrollToCategories()" class="bg-white/10 hover:bg-white/20 text-white font-semibold py-2.5 px-6 rounded-md backdrop-blur">Browse Categories</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Categories -->
+      <div id="home-categories" class="max-w-7xl mx-auto px-4 py-8">
+        <h2 class="text-xl font-bold mb-4">Shop by Category</h2>
+        <div id="categoryGrid" class="grid grid-cols-3 md:grid-cols-6 gap-3"></div>
+      </div>
+
+      <!-- Flash Deals -->
+      <div class="bg-rose-50">
+        <div class="max-w-7xl mx-auto px-4 py-8">
+          <div class="flex items-center justify-between mb-4">
+            <div class="flex items-center gap-3">
+              <h2 class="text-xl font-bold text-rose-700">Flash Deals</h2>
+              <div id="flashTimer" class="bg-rose-700 text-white text-sm font-mono px-3 py-1 rounded flash-blink">00:00:00</div>
+            </div>
+            <button onclick="filterDeals()" class="text-sm font-semibold text-rose-700 hover:underline">See all</button>
+          </div>
+          <div id="flashDealsRow" class="flex overflow-x-auto gap-4 pb-4 snap-x scrollbar-hide"></div>
+        </div>
+      </div>
+
+      <!-- Trending -->
+      <div class="max-w-7xl mx-auto px-4 py-8">
+        <div class="flex items-center justify-between mb-4">
+          <h2 class="text-xl font-bold">Trending Now</h2>
+          <button onclick="navigate('listing')" class="text-sm text-amazon-blue hover:underline">See more</button>
+        </div>
+        <div id="trendingRow" class="flex overflow-x-auto gap-4 pb-4 snap-x scrollbar-hide"></div>
+      </div>
+
+      <!-- Recommended -->
+      <div class="bg-gray-50">
+        <div class="max-w-7xl mx-auto px-4 py-8">
+          <div class="flex items-center justify-between mb-4">
+            <h2 class="text-xl font-bold">Recommended for You</h2>
+            <span class="text-xs text-gray-500 bg-white border px-2 py-1 rounded">AI-powered</span>
+          </div>
+          <div id="recommendedGrid" class="grid grid-cols-2 md:grid-cols-4 gap-4"></div>
+        </div>
+      </div>
+
+      <!-- Best Sellers -->
+      <div class="max-w-7xl mx-auto px-4 py-8">
+        <h2 class="text-xl font-bold mb-4">Best Sellers</h2>
+        <div id="bestSellersGrid" class="grid grid-cols-2 md:grid-cols-4 gap-4"></div>
+      </div>
+
+      <!-- Buy Again -->
+      <div id="buyAgainSection" class="max-w-7xl mx-auto px-4 py-8 hidden">
+        <h2 class="text-xl font-bold mb-4">Buy Again</h2>
+        <div id="buyAgainRow" class="flex overflow-x-auto gap-4 pb-4 snap-x scrollbar-hide"></div>
+      </div>
+
+      <!-- Recently Viewed -->
+      <div id="recentlyViewedSection" class="max-w-7xl mx-auto px-4 py-8 hidden">
+        <h2 class="text-xl font-bold mb-4">Recently Viewed</h2>
+        <div id="recentlyViewedRow" class="flex overflow-x-auto gap-4 pb-4 snap-x scrollbar-hide"></div>
+      </div>
+    </section>
+
+    <!-- LISTING -->
+    <section id="page-listing" class="page-section hidden">
+      <div class="bg-amazon-light text-white py-2 px-4 text-sm">
+        <span id="listingBreadcrumb">All Products</span>
+      </div>
+      <div class="max-w-7xl mx-auto px-4 py-6">
+        <div class="flex flex-col lg:flex-row gap-6">
+          <!-- Filters -->
+          <aside class="lg:w-64 flex-shrink-0">
+            <div class="flex items-center justify-between lg:hidden mb-3">
+              <h2 class="font-bold text-lg">Filters</h2>
+              <button onclick="toggleMobileFilters()" class="text-amazon-blue"><i class="fas fa-filter"></i></button>
+            </div>
+            <div id="filtersPanel" class="hidden lg:block bg-white border rounded-lg p-4 space-y-5">
+              <div>
+                <h3 class="font-bold mb-2">Category</h3>
+                <div id="filterCategories" class="space-y-1 text-sm"></div>
+              </div>
+              <div>
+                <h3 class="font-bold mb-2">Price</h3>
+                <div class="flex gap-2">
+                  <input type="number" id="minPrice" class="w-full border rounded px-2 py-1 text-sm" placeholder="Min" />
+                  <input type="number" id="maxPrice" class="w-full border rounded px-2 py-1 text-sm" placeholder="Max" />
+                </div>
+                <button onclick="applyPriceFilter()" class="mt-2 w-full bg-gray-100 hover:bg-gray-200 text-sm py-1 rounded">Apply</button>
+              </div>
+              <div>
+                <h3 class="font-bold mb-2">Customer Rating</h3>
+                <div id="filterRatings" class="space-y-1 text-sm"></div>
+              </div>
+              <button onclick="clearFilters()" class="w-full border border-gray-300 text-sm py-1.5 rounded hover:bg-gray-50">Clear all</button>
+            </div>
+          </aside>
+
+          <!-- Results -->
+          <div class="flex-1">
+            <div class="flex items-center justify-between mb-4">
+              <p id="resultCount" class="text-sm text-gray-600"></p>
+              <select id="sortSelect" onchange="applySort()" class="border rounded px-2 py-1 text-sm">
+                <option value="featured">Featured</option>
+                <option value="priceAsc">Price: Low to High</option>
+                <option value="priceDesc">Price: High to Low</option>
+                <option value="ratingDesc">Avg. Customer Review</option>
+              </select>
+            </div>
+            <div id="listingGrid" class="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4"></div>
+            <div id="listingEmpty" class="hidden text-center py-16">
+              <i class="fas fa-search text-4xl text-gray-300 mb-3"></i>
+              <p class="text-gray-600">No products match your search.</p>
+              <button onclick="clearFilters()" class="mt-3 text-amazon-blue hover:underline">Clear filters</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- DETAILS -->
+    <section id="page-details" class="page-section hidden">
+      <div class="bg-amazon-light text-white py-2 px-4 text-sm">
+        <button onclick="navigate('listing')" class="hover:underline">← Back to results</button>
+      </div>
+      <div class="max-w-7xl mx-auto px-4 py-6">
+        <div class="grid md:grid-cols-2 gap-8">
+          <div>
+            <div class="border rounded-lg overflow-hidden bg-white p-4">
+              <img id="detailImage" src="" alt="" class="w-full object-contain h-80 md:h-96" />
+            </div>
+          </div>
+          <div>
+            <p id="detailCategory" class="text-sm text-amazon-blue mb-1"></p>
+            <h1 id="detailTitle" class="text-2xl md:text-3xl font-bold text-gray-900 mb-2"></h1>
+            <div id="detailRating" class="flex items-center gap-2 mb-3"></div>
+            <div class="border-t border-b py-3 mb-4">
+              <div class="flex items-baseline gap-3">
+                <span id="detailPrice" class="text-3xl font-bold text-gray-900"></span>
+                <span id="detailOriginal" class="text-lg text-gray-500 line-through hidden"></span>
+              </div>
+              <p class="text-sm text-gray-600 mt-1" id="detailStock"></p>
+            </div>
+            <p class="text-gray-700 mb-4" id="detailDesc"></p>
+            <div class="flex items-center gap-3 mb-4">
+              <label class="text-sm font-medium">Qty:</label>
+              <select id="detailQty" class="border rounded px-2 py-1 text-sm">
+                <option>1</option><option>2</option><option>3</option><option>4</option><option>5</option>
+                <option>6</option><option>7</option><option>8</option><option>9</option><option>10</option>
+              </select>
+            </div>
+            <div class="flex flex-col sm:flex-row gap-3 mb-6">
+              <button id="detailAddCart" class="flex-1 bg-amazon-orange hover:bg-orange-400 text-amazon-dark font-bold py-2.5 rounded-md">Add to Cart</button>
+              <button id="detailBuyNow" class="flex-1 bg-amber-500 hover:bg-amber-600 text-white font-bold py-2.5 rounded-md">Buy Now</button>
+            </div>
+            <button id="detailWishlist" class="w-full sm:w-auto border border-gray-300 px-4 py-2 rounded-md text-sm hover:bg-gray-50">
+              <i class="far fa-heart mr-1"></i> Add to Wishlist
+            </button>
+          </div>
+        </div>
+
+        <!-- Reviews -->
+        <div class="mt-10">
+          <h2 class="text-xl font-bold mb-4">Customer Reviews</h2>
+          <div id="reviewsList" class="space-y-4 max-w-3xl"></div>
+          <form id="reviewForm" class="mt-6 max-w-xl bg-gray-50 p-4 rounded-lg">
+            <h3 class="font-bold mb-3">Write a review</h3>
+            <div class="mb-3">
+              <label class="block text-sm font-medium mb-1">Rating</label>
+              <select id="reviewRating" class="border rounded px-2 py-1 text-sm">
+                <option value="5">5 — Excellent</option>
+                <option value="4">4 — Good</option>
+                <option value="3">3 — Average</option>
+                <option value="2">2 — Poor</option>
+                <option value="1">1 — Terrible</option>
+              </select>
+            </div>
+            <div class="mb-3">
+              <label class="block text-sm font-medium mb-1">Review</label>
+              <textarea id="reviewText" rows="3" class="w-full border rounded px-3 py-2 text-sm" required></textarea>
+            </div>
+            <button type="submit" class="bg-amazon-dark text-white text-sm font-semibold px-4 py-2 rounded hover:bg-gray-800">Submit Review</button>
+          </form>
+        </div>
+
+        <!-- Related -->
+        <div class="mt-10">
+          <h2 class="text-xl font-bold mb-4">Related Products</h2>
+          <div id="relatedRow" class="flex overflow-x-auto gap-4 pb-4 snap-x scrollbar-hide"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- CART -->
+    <section id="page-cart" class="page-section hidden">
+      <div class="max-w-7xl mx-auto px-4 py-6">
+        <h1 class="text-2xl font-bold mb-6">Shopping Cart</h1>
+        <div class="flex flex-col lg:flex-row gap-6">
+          <div id="cartItems" class="flex-1 bg-white border rounded-lg p-4"></div>
+          <div class="lg:w-80">
+            <div class="bg-white border rounded-lg p-4 sticky top-24">
+              <h2 class="text-lg font-bold mb-3">Order Summary</h2>
+              <div class="space-y-2 text-sm">
+                <div class="flex justify-between"><span>Subtotal</span><span id="cartSubtotal">$0.00</span></div>
+                <div class="flex justify-between"><span>Shipping</span><span id="cartShipping">$0.00</span></div>
+                <div class="flex justify-between"><span>Tax</span><span id="cartTax">$0.00</span></div>
+                <div class="border-t pt-2 flex justify-between font-bold text-lg"><span>Total</span><span id="cartTotal">$0.00</span></div>
+              </div>
+              <button onclick="navigate('checkout')" id="cartCheckoutBtn" class="mt-4 w-full bg-amazon-orange hover:bg-orange-400 text-amazon-dark font-bold py-2 rounded-md">Proceed to Checkout</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- CHECKOUT -->
+    <section id="page-checkout" class="page-section hidden">
+      <div class="max-w-5xl mx-auto px-4 py-6">
+        <h1 class="text-2xl font-bold mb-6">Checkout</h1>
+        <div class="flex flex-col lg:flex-row gap-6">
+          <form id="checkoutForm" class="flex-1 space-y-4 bg-white border rounded-lg p-4">
+            <div>
+              <h2 class="font-bold mb-2">Contact Info</h2>
+              <input required type="email" id="checkoutEmail" class="w-full border rounded px-3 py-2 text-sm" placeholder="Email" />
+            </div>
+            <div>
+              <h2 class="font-bold mb-2">Shipping Address</h2>
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <input required type="text" id="checkoutName" class="border rounded px-3 py-2 text-sm" placeholder="Full name" />
+                <input required type="text" id="checkoutAddress" class="border rounded px-3 py-2 text-sm" placeholder="Street address" />
+                <input required type="text" id="checkoutCity" class="border rounded px-3 py-2 text-sm" placeholder="City" />
+                <input required type="text" id="checkoutZip" class="border rounded px-3 py-2 text-sm" placeholder="ZIP code" />
+              </div>
+            </div>
+            <div>
+              <h2 class="font-bold mb-2">Payment</h2>
+              <input required type="text" id="checkoutCard" class="w-full border rounded px-3 py-2 text-sm" placeholder="Card number" maxlength="19" />
+              <div class="flex gap-3 mt-2">
+                <input required type="text" id="checkoutExpiry" class="w-1/2 border rounded px-3 py-2 text-sm" placeholder="MM/YY" maxlength="5" />
+                <input required type="text" id="checkoutCvc" class="w-1/2 border rounded px-3 py-2 text-sm" placeholder="CVC" maxlength="4" />
+              </div>
+            </div>
+            <button type="submit" class="w-full bg-amazon-orange hover:bg-orange-400 text-amazon-dark font-bold py-2.5 rounded-md">Place Order</button>
+          </form>
+          <div class="lg:w-80">
+            <div class="bg-white border rounded-lg p-4 sticky top-24">
+              <h2 class="font-bold mb-3">Order Summary</h2>
+              <div id="checkoutSummaryItems" class="space-y-2 text-sm mb-3 max-h-64 overflow-y-auto"></div>
+              <div class="border-t pt-2 flex justify-between font-bold"><span>Total</span><span id="checkoutTotal">$0.00</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- DASHBOARD -->
+    <section id="page-dashboard" class="page-section hidden">
+      <div class="max-w-7xl mx-auto px-4 py-6">
+        <h1 class="text-2xl font-bold mb-6">Your Account</h1>
+        <div class="flex flex-col md:flex-row gap-6">
+          <div class="md:w-64">
+            <div class="bg-white border rounded-lg overflow-hidden">
+              <button onclick="setDashboardTab('orders')" data-tab="orders" class="dash-tab w-full text-left px-4 py-3 hover:bg-gray-50 border-b font-medium">Orders</button>
+              <button onclick="setDashboardTab('wishlist')" data-tab="wishlist" class="dash-tab w-full text-left px-4 py-3 hover:bg-gray-50 border-b">Wishlist</button>
+              <button onclick="setDashboardTab('recent')" data-tab="recent" class="dash-tab w-full text-left px-4 py-3 hover:bg-gray-50 border-b">Recently Viewed</button>
+              <button onclick="setDashboardTab('addresses')" data-tab="addresses" class="dash-tab w-full text-left px-4 py-3 hover:bg-gray-50 border-b">Addresses</button>
+              <button onclick="setDashboardTab('profile')" data-tab="profile" class="dash-tab w-full text-left px-4 py-3 hover:bg-gray-50">Profile</button>
+            </div>
+          </div>
+          <div class="flex-1">
+            <div id="dashboardContent"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ADMIN -->
+    <section id="page-admin" class="page-section hidden">
+      <div class="max-w-7xl mx-auto px-4 py-6">
+        <h1 class="text-2xl font-bold mb-6">Admin Panel</h1>
+        <div id="adminStats" class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6"></div>
+        <div class="bg-white border rounded-lg p-4">
+          <div class="flex items-center justify-between mb-4">
+            <h2 class="font-bold text-lg">Products</h2>
+            <button onclick="openProductModal()" class="bg-amazon-orange text-amazon-dark font-bold px-3 py-1.5 rounded text-sm">+ Add Product</button>
+          </div>
+          <div class="overflow-x-auto">
+            <table class="w-full text-sm text-left">
+              <thead class="bg-gray-100">
+                <tr><th class="p-2">ID</th><th class="p-2">Product</th><th class="p-2">Category</th><th class="p-2">Price</th><th class="p-2">Stock</th><th class="p-2">Actions</th></tr>
+              </thead>
+              <tbody id="adminProductTable"></tbody>
+            </table>
+          </div>
+          <h2 class="font-bold text-lg mt-8 mb-3">Recent Orders</h2>
+          <div class="overflow-x-auto">
+            <table class="w-full text-sm text-left">
+              <thead class="bg-gray-100">
+                <tr><th class="p-2">Order #</th><th class="p-2">Date</th><th class="p-2">Customer</th><th class="p-2">Total</th><th class="p-2">Status</th></tr>
+              </thead>
+              <tbody id="adminOrderTable"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Product Modal -->
+  <div id="productModal" class="fixed inset-0 bg-black/50 hidden z-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-lg w-full max-w-lg p-6 max-h-[90vh] overflow-y-auto">
+      <h2 id="modalTitle" class="text-xl font-bold mb-4">Add Product</h2>
+      <form id="productForm" class="space-y-3">
+        <input type="hidden" id="modalProductId" />
+        <input required id="modalTitleInput" class="w-full border rounded px-3 py-2 text-sm" placeholder="Title" />
+        <select id="modalCategory" class="w-full border rounded px-3 py-2 text-sm"></select>
+        <div class="flex gap-3">
+          <input required type="number" step="0.01" id="modalPrice" class="w-1/2 border rounded px-3 py-2 text-sm" placeholder="Price" />
+          <input type="number" step="0.01" id="modalOriginalPrice" class="w-1/2 border rounded px-3 py-2 text-sm" placeholder="Original Price" />
+        </div>
+        <div class="flex gap-3">
+          <input required type="number" step="0.1" max="5" id="modalRating" class="w-1/2 border rounded px-3 py-2 text-sm" placeholder="Rating (0-5)" />
+          <input required type="number" id="modalStock" class="w-1/2 border rounded px-3 py-2 text-sm" placeholder="Stock" />
+        </div>
+        <input required id="modalImage" class="w-full border rounded px-3 py-2 text-sm" placeholder="Image URL" />
+        <div class="flex justify-end gap-2 mt-4">
+          <button type="button" onclick="closeProductModal()" class="px-4 py-2 text-sm border rounded">Cancel</button>
+          <button type="submit" class="px-4 py-2 text-sm bg-amazon-dark text-white rounded">Save</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Toast -->
+  <div id="toast" class="fixed bottom-4 right-4 bg-amazon-dark text-white px-4 py-2 rounded shadow-lg transform translate-y-20 opacity-0 transition-all z-50">Added</div>
+
+  <!-- Footer -->
+  <footer class="bg-amazon-light text-white mt-12">
+    <button onclick="window.scrollTo({top:0,behavior:'smooth'})" class="w-full bg-amazon-light hover:bg-gray-700 text-sm py-3 border-b border-gray-700">Back to top</button>
+    <div class="max-w-7xl mx-auto px-4 py-8 grid grid-cols-2 md:grid-cols-4 gap-6 text-sm">
+      <div>
+        <h4 class="font-bold mb-2">Get to Know Us</h4>
+        <ul class="space-y-1 text-gray-300">
+          <li><a class="hover:underline">About Us</a></li>
+          <li><a class="hover:underline">Careers</a></li>
+          <li><a class="hover:underline">Press</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4 class="font-bold mb-2">Make Money</h4>
+        <ul class="space-y-1 text-gray-300">
+          <li><a class="hover:underline">Sell on Amazora</a></li>
+          <li><a class="hover:underline">Affiliate Program</a></li>
+          <li><a class="hover:underline">Advertise</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4 class="font-bold mb-2">Payment</h4>
+        <ul class="space-y-1 text-gray-300">
+          <li><a class="hover:underline">Business Card</a></li>
+          <li><a class="hover:underline">Shop with Points</a></li>
+          <li><a class="hover:underline">Reload Balance</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4 class="font-bold mb-2">Help</h4>
+        <ul class="space-y-1 text-gray-300">
+          <li><a class="hover:underline">Customer Service</a></li>
+          <li><a class="hover:underline">Returns</a></li>
+          <li><a class="hover:underline">Shipping Rates</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="bg-amazon-dark text-center text-xs text-gray-400 py-4">
+      © 2026 Methun Hossain Amazora Demo. Built for demonstration purposes.
+    </div>
+  </footer>
+
+  <script>
+    const categories = [
+      {name:'Electronics', icon:'fa-laptop'},
+      {name:'Fashion', icon:'fa-tshirt'},
+      {name:'Home', icon:'fa-couch'},
+      {name:'Books', icon:'fa-book'},
+      {name:'Sports', icon:'fa-futbol'},
+      {name:'Beauty', icon:'fa-spa'}
+    ];
+
+    const initialProductData = [
+      {id:1, title:'Wireless Noise Cancelling Headphones', price:79.99, originalPrice:129.99, category:'Electronics', rating:4.5, reviewsCount:1240, image:'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?auto=format&fit=crop&w=500&q=80', stock:34, bestseller:true, trending:true, deal:true},
+      {id:2, title:'Smart Fitness Watch', price:49.99, originalPrice:89.99, category:'Electronics', rating:4.2, reviewsCount:856, image:'https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&w=500&q=80', stock:50, bestseller:true},
+      {id:3, title:'4K Digital Camera', price:549.00, originalPrice:699.00, category:'Electronics', rating:4.7, reviewsCount:312, image:'https://images.unsplash.com/photo-1516035069371-29a1b244cc32?auto=format&fit=crop&w=500&q=80', stock:12, trending:true},
+      {id:4, title:'Ultra Slim Laptop', price:899.00, originalPrice:1199.00, category:'Electronics', rating:4.4, reviewsCount:2100, image:'https://images.unsplash.com/photo-1496181133206-80ce9b88a853?auto=format&fit=crop&w=500&q=80', stock:8, bestseller:true},
+      {id:5, title:'Smartphone 5G 128GB', price:599.99, originalPrice:749.99, category:'Electronics', rating:4.3, reviewsCount:5400, image:'https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?auto=format&fit=crop&w=500&q=80', stock:22, trending:true, deal:true},
+      {id:6, title:'Running Sneakers', price:69.99, originalPrice:99.99, category:'Fashion', rating:4.6, reviewsCount:980, image:'https://images.unsplash.com/photo-1542291026-7eec264c27ff?auto=format&fit=crop&w=500&q=80', stock:45, bestseller:true},
+      {id:7, title:'Cotton Crew T-Shirt', price:19.99, originalPrice:29.99, category:'Fashion', rating:4.1, reviewsCount:430, image:'https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?auto=format&fit=crop&w=500&q=80', stock:100, trending:true},
+      {id:8, title:'Denim Jacket', price:59.99, originalPrice:89.99, category:'Fashion', rating:4.4, reviewsCount:210, image:'https://images.unsplash.com/photo-1551488852-7a5e130a91b7?auto=format&fit=crop&w=500&q=80', stock:28},
+      {id:9, title:'Modern Lounge Chair', price:199.00, originalPrice:299.00, category:'Home', rating:4.5, reviewsCount:670, image:'https://images.unsplash.com/photo-1592078615290-033ee584e267?auto=format&fit=crop&w=500&q=80', stock:15, bestseller:true},
+      {id:10, title:'Minimalist Table Lamp', price:34.99, originalPrice:49.99, category:'Home', rating:4.3, reviewsCount:320, image:'https://images.unsplash.com/photo-1507473885765-e6ed057f782c?auto=format&fit=crop&w=500&q=80', stock:60, trending:true},
+      {id:11, title:'Ceramic Coffee Mug Set', price:24.99, originalPrice:39.99, category:'Home', rating:4.8, reviewsCount:150, image:'https://images.unsplash.com/photo-1514228742587-6b1558fcca3d?auto=format&fit=crop&w=500&q=80', stock:80},
+      {id:12, title:'Bestseller Novel', price:14.99, originalPrice:24.99, category:'Books', rating:4.7, reviewsCount:3200, image:'https://images.unsplash.com/photo-1544947950-fa07a98d237f?auto=format&fit=crop&w=500&q=80', stock:200, bestseller:true},
+      {id:13, title:'Self-Help Guide', price:18.99, originalPrice:28.99, category:'Books', rating:4.4, reviewsCount:890, image:'https://images.unsplash.com/photo-1589829085413-56de8ae18c73?auto=format&fit=crop&w=500&q=80', stock:150, trending:true},
+      {id:14, title:'Yoga Mat Non-Slip', price:29.99, originalPrice:44.99, category:'Sports', rating:4.6, reviewsCount:760, image:'https://images.unsplash.com/photo-1601925260368-ae2f83cf8b7f?auto=format&fit=crop&w=500&q=80', stock:55, bestseller:true},
+      {id:15, title:'Adjustable Dumbbells', price:119.00, originalPrice:159.00, category:'Sports', rating:4.5, reviewsCount:410, image:'https://images.unsplash.com/photo-1583454110551-21f2fa2afe61?auto=format&fit=crop&w=500&q=80', stock:20, trending:true, deal:true},
+      {id:16, title:'Hydrating Face Cream', price:22.99, originalPrice:34.99, category:'Beauty', rating:4.3, reviewsCount:540, image:'https://images.unsplash.com/photo-1620916566398-39f1143ab7be?auto=format&fit=crop&w=500&q=80', stock:90, trending:true},
+      {id:17, title:'Bluetooth Speaker', price:39.99, originalPrice:59.99, category:'Electronics', rating:4.4, reviewsCount:1120, image:'https://images.unsplash.com/photo-1608043152269-423dbba4e7e1?auto=format&fit=crop&w=500&q=80', stock:40, deal:true},
+      {id:18, title:'Leather Wallet', price:29.99, originalPrice:45.00, category:'Fashion', rating:4.2, reviewsCount:330, image:'https://images.unsplash.com/photo-1627123424574-181ce5171c98?auto=format&fit=crop&w=500&q=80', stock:75},
+      {id:19, title:'Robot Vacuum Cleaner', price:249.00, originalPrice:399.00, category:'Home', rating:4.6, reviewsCount:520, image:'https://images.unsplash.com/photo-1558317374-a354d5f6d4da?auto=format&fit=crop&w=500&q=80', stock:10, bestseller:true, deal:true},
+      {id:20, title:'Tennis Racket', price:54.99, originalPrice:79.99, category:'Sports', rating:4.3, reviewsCount:190, image:'https://images.unsplash.com/photo-1622163642998-1ea50e8d5b0d?auto=format&fit=crop&w=500&q=80', stock:30}
+    ];
+
+    function sampleReviews(p){
+      const reviewers = ['Sarah M.','Mike T.','Priya K.','John D.','Emily R.'];
+      const texts = ['Absolutely love it!','Great value for the price.','Good quality, fast shipping.','Exceeded my expectations.','Will buy again.'];
+      const count = 2 + Math.floor(Math.random()*2);
+      const revs = [];
+      for(let i=0;i<count;i++){
+        let r = Math.round(p.rating);
+        if(Math.random()>0.6) r = Math.min(5, r+1);
+        if(Math.random()<0.2) r = Math.max(1, r-1);
+        revs.push({name:reviewers[(i+p.id)%reviewers.length], rating:r, text:texts[(i+p.id)%texts.length], date:`2023-${10+i%3}-${5+i*3}`});
+      }
+      return revs;
+    }
+
+    function seedProducts(){
+      return initialProductData.map(p=>({...p, reviews: sampleReviews(p)}));
+    }
+
+    let state;
+    function loadState(){
+      const saved = localStorage.getItem('amazoraState');
+      if(saved){ try{ state = JSON.parse(saved); }catch(e){ state=null; } }
+      if(!state || !state.products || !state.products.length){
+        state = {
+          cart:[],
+          wishlist:[],
+          recent:[],
+          orders:[],
+          products: seedProducts(),
+          addresses:[{label:'Home', line:'123 Market St, Springfield, IL 62704'}],
+          profile:{name:'Alex Johnson', email:'alex@example.com'}
+        };
+      }
+    }
+
+    function save(){ localStorage.setItem('amazoraState', JSON.stringify(state)); }
+
+    let activePage = 'home';
+    let currentProductId = null;
+    let activeDashTab = 'orders';
+    let filters = { q:'', category:'All', min:0, max:100000, minRating:0, sort:'featured', dealOnly:false };
+
+    function $(id){ return document.getElementById(id); }
+
+    function stars(r){
+      let html='';
+      for(let i=1;i<=5;i++){
+        if(r>=i) html+='<i class="fas fa-star text-amazon-orange text-xs"></i>';
+        else if(r>=i-0.5) html+='<i class="fas fa-star-half-alt text-amazon-orange text-xs"></i>';
+        else html+='<i class="far fa-star text-gray-300 text-xs"></i>';
+      }
+      return html;
+    }
+
+    function productCard(p){
+      const inWish = state.wishlist.includes(p.id);
+      return `
+      <div onclick="openProduct(${p.id})" class="product-card group relative bg-white rounded-lg border border-gray-200 overflow-hidden flex flex-col h-full cursor-pointer">
+        <div class="relative aspect-square overflow-hidden bg-gray-100">
+          <img src="${p.image}" alt="${p.title}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" loading="lazy" />
+          ${p.deal ? '<span class="absolute top-2 left-2 bg-red-600 text-white text-[10px] font-bold px-2 py-0.5 rounded">Deal</span>':''}
+          ${p.bestseller ? '<span class="absolute top-2 right-2 bg-amazon-dark text-white text-[10px] px-2 py-0.5 rounded">Best Seller</span>':''}
+          <button onclick="event.stopPropagation(); toggleWishlist(${p.id})" class="absolute bottom-2 right-2 w-8 h-8 rounded-full bg-white shadow flex items-center justify-center text-sm hover:bg-gray-100 ${inWish?'text-red-500':'text-gray-500'}">
+            <i class="${inWish?'fas':'far'} fa-heart"></i>
+          </button>
+        </div>
+        <div class="p-3 flex-1 flex flex-col">
+          <p class="text-xs text-gray-500 mb-1">${p.category}</p>
+          <h3 class="text-sm font-medium text-gray-900 line-clamp-2 mb-1">${p.title}</h3>
+          <div class="flex items-center gap-1 mb-1">${stars(p.rating)} <span class="text-xs text-amazon-blue">(${p.reviewsCount})</span></div>
+          <div class="mt-auto">
+            <div class="flex items-baseline gap-2">
+              <span class="text-lg font-bold text-gray-900">$${p.price.toFixed(2)}</span>
+              ${p.originalPrice ? `<span class="text-xs text-gray-500 line-through">$${p.originalPrice.toFixed(2)}</span>`:''}
+            </div>
+            <button onclick="event.stopPropagation(); addToCart(${p.id})" class="mt-2 w-full bg-amazon-orange hover:bg-orange-400 text-amazon-dark font-semibold text-sm py-1.5 rounded-full transition-colors">Add to Cart</button>
+          </div>
+        </div>
+      </div>`;
+    }
+
+    function productRow(p){ return `<div class="flex-none w-40 md:w-56 snap-start">${productCard(p)}</div>`; }
+
+    function showToast(msg){
+      const t=$('toast');
+      t.innerText=msg;
+      t.classList.remove('translate-y-20','opacity-0');
+      setTimeout(()=> t.classList.add('translate-y-20','opacity-0'), 2500);
+    }
+
+    function updateCartCount(){
+      const count = state.cart.reduce((a,i)=>a+i.qty,0);
+      $('cartCount').innerText = count;
+    }
+
+    function addToCart(id, qty=1){
+      const p = state.products.find(x=>x.id===id);
+      if(!p) return;
+      qty = Math.max(1, Math.min(qty, p.stock));
+      const existing = state.cart.find(i=>i.id===id);
+      if(existing){ existing.qty = Math.min(existing.qty+qty, p.stock); }
+      else { state.cart.push({id, qty}); }
+      save(); updateCartCount(); showToast('Added to cart');
+    }
+
+    function buyNow(id, qty=1){ addToCart(id, qty); navigate('checkout'); }
+
+    function removeFromCart(id){
+      state.cart = state.cart.filter(i=>i.id!==id);
+      save(); updateCartCount(); renderCurrentPage();
+    }
+
+    function updateCartQty(id, qty){
+      qty = parseInt(qty);
+      const item = state.cart.find(i=>i.id===id);
+      if(!item) return;
+      if(qty<1){ removeFromCart(id); return; }
+      const p = state.products.find(x=>x.id===id);
+      item.qty = Math.min(qty, p.stock);
+      save(); updateCartCount(); renderCart();
+    }
+
+    function moveToWishlist(id){ removeFromCart(id); toggleWishlist(id); }
+
+    function toggleWishlist(id){
+      if(state.wishlist.includes(id)){ state.wishlist = state.wishlist.filter(x=>x!==id); showToast('Removed from wishlist'); }
+      else { state.wishlist.push(id); showToast('Added to wishlist'); }
+      save(); renderCurrentPage();
+    }
+
+    function addRecent(id){
+      state.recent = [id, ...state.recent.filter(x=>x!==id)].slice(0,12);
+      save();
+    }
+
+    function openProduct(id){
+      addRecent(id);
+      currentProductId = id;
+      navigate('details');
+    }
+
+    function getRecommended(){
+      const source = [...state.wishlist, ...state.recent];
+      const cats = new Set(source.map(id=>state.products.find(p=>p.id===id)?.category).filter(Boolean));
+      let rec = [];
+      if(cats.size) rec = state.products.filter(p=>cats.has(p.category));
+      if(rec.length < 4) rec = rec.concat(state.products.filter(p=>p.trending || p.bestseller));
+      return [...new Map(rec.map(p=>[p.id,p])).values()];
+    }
+
+    function renderHome(){
+      $('categoryGrid').innerHTML = categories.map(c=>`
+        <button onclick="filterByCategory('${c.name}')" class="flex flex-col items-center justify-center bg-white border rounded-lg p-4 hover:shadow-md transition h-28">
+          <i class="fas ${c.icon} text-2xl text-amazon-orange mb-2"></i>
+          <span class="text-xs font-medium">${c.name}</span>
+        </button>`).join('');
+      $('trendingRow').innerHTML = state.products.filter(p=>p.trending).slice(0,10).map(productRow).join('');
+      $('recommendedGrid').innerHTML = getRecommended().slice(0,8).map(productCard).join('');
+      $('bestSellersGrid').innerHTML = state.products.filter(p=>p.bestseller).slice(0,8).map(productCard).join('');
+      $('flashDealsRow').innerHTML = state.products.filter(p=>p.deal).slice(0,8).map(productRow).join('');
+
+      const boughtIds = new Set(state.orders.flatMap(o=>o.items.map(i=>i.id)));
+      const buyAgain = state.products.filter(p=>boughtIds.has(p.id)).slice(0,10);
+      if(buyAgain.length){ $('buyAgainSection').classList.remove('hidden'); $('buyAgainRow').innerHTML = buyAgain.map(productRow).join(''); attachSwipe('buyAgainRow'); }
+      else { $('buyAgainSection').classList.add('hidden'); }
+
+      const recent = state.recent.map(id=>state.products.find(p=>p.id===id)).filter(Boolean).slice(0,10);
+      if(recent.length){ $('recentlyViewedSection').classList.remove('hidden'); $('recentlyViewedRow').innerHTML = recent.map(productRow).join(''); attachSwipe('recentlyViewedRow'); }
+      else { $('recentlyViewedSection').classList.add('hidden'); }
+
+      attachSwipe('trendingRow'); attachSwipe('flashDealsRow');
+    }
+
+    function filterProducts(){
+      const q = filters.q.toLowerCase();
+      return state.products.filter(p=>{
+        return (!filters.dealOnly || p.deal) &&
+          (q==='' || p.title.toLowerCase().includes(q)) &&
+          (filters.category==='All' || p.category===filters.category) &&
+          (p.price >= filters.min) &&
+          (p.price <= filters.max) &&
+          (p.rating >= filters.minRating);
+      });
+    }
+
+    function sortProducts(list){
+      const s = filters.sort;
+      if(s==='priceAsc') list.sort((a,b)=>a.price-b.price);
+      else if(s==='priceDesc') list.sort((a,b)=>b.price-a.price);
+      else if(s==='ratingDesc') list.sort((a,b)=>b.rating-a.rating);
+      else list.sort((a,b)=>(b.bestseller+b.trending*0.5)-(a.bestseller+a.trending*0.5));
+      return list;
+    }
+
+    function renderListing(){
+      // categories filter
+      let catHtml = `<label class="flex items-center gap-2 cursor-pointer"><input type="radio" name="fcat" value="All" ${filters.category==='All'?'checked':''} onchange="setCategoryFilter(this.value)" class="text-amazon-orange"> All</label>`;
+      categories.forEach(c=>{
+        catHtml += `<label class="flex items-center gap-2 cursor-pointer"><input type="radio" name="fcat" value="${c.name}" ${filters.category===c.name?'checked':''} onchange="setCategoryFilter(this.value)" class="text-amazon-orange"> ${c.name}</label>`;
+      });
+      $('filterCategories').innerHTML = catHtml;
+
+      let ratHtml = `<label class="flex items-center gap-2 cursor-pointer"><input type="radio" name="frat" value="0" ${filters.minRating===0?'checked':''} onchange="setRatingFilter(this.value)" class="text-amazon-orange"> Any</label>`;
+      [4,3,2,1].forEach(r=>{
+        ratHtml += `<label class="flex items-center gap-2 cursor-pointer"><input type="radio" name="frat" value="${r}" ${filters.minRating===r?'checked':''} onchange="setRatingFilter(this.value)" class="text-amazon-orange"> ${r}+ stars</label>`;
+      });
+      $('filterRatings').innerHTML = ratHtml;
+
+      let result = sortProducts(filterProducts());
+      $('resultCount').innerText = `${result.length} result${result.length!==1?'s':''}`;
+      if(result.length){
+        $('listingGrid').innerHTML = result.map(productCard).join('');
+        $('listingEmpty').classList.add('hidden');
+        $('listingGrid').classList.remove('hidden');
+      } else {
+        $('listingGrid').classList.add('hidden');
+        $('listingEmpty').classList.remove('hidden');
+      }
+      $('listingBreadcrumb').innerText = filters.dealOnly ? 'Flash Deals' : (filters.category==='All' ? (filters.q ? `Search: "${filters.q}"` : 'All Products') : filters.category);
+    }
+
+    function renderDetails(){
+      const p = state.products.find(x=>x.id===currentProductId);
+      if(!p) return;
+      $('detailImage').src = p.image;
+      $('detailCategory').innerText = p.category;
+      $('detailTitle').innerText = p.title;
+      $('detailRating').innerHTML = `${stars(p.rating)} <span class="text-amazon-blue text-sm ml-1">${p.rating.toFixed(1)} out of 5 (${p.reviewsCount} ratings)</span>`;
+      $('detailPrice').innerText = '$'+p.price.toFixed(2);
+      if(p.originalPrice && p.originalPrice>p.price){
+        $('detailOriginal').innerText = '$'+p.originalPrice.toFixed(2);
+        $('detailOriginal').classList.remove('hidden');
+      } else { $('detailOriginal').classList.add('hidden'); }
+      $('detailStock').innerText = p.stock>20 ? 'In Stock.' : `Only ${p.stock} left in stock — order soon.`;
+      $('detailDesc').innerText = `Experience premium quality with the ${p.title}. Designed for everyday use, backed by thousands of happy customers and our hassle-free return policy.`;
+      const inWish = state.wishlist.includes(p.id);
+      $('detailWishlist').innerHTML = `<i class="${inWish?'fas':'far'} fa-heart mr-1"></i> ${inWish?'Remove from':'Add to'} Wishlist`;
+      $('detailWishlist').onclick = ()=>toggleWishlist(p.id);
+      $('detailAddCart').onclick = ()=>addToCart(p.id, parseInt($('detailQty').value));
+      $('detailBuyNow').onclick = ()=>buyNow(p.id, parseInt($('detailQty').value));
+
+      // reviews
+      const revs = p.reviews || [];
+      if(!revs.length){ $('reviewsList').innerHTML = '<p class="text-gray-500 text-sm">No reviews yet. Be the first!</p>'; }
+      else {
+        $('reviewsList').innerHTML = revs.map(r=>`
+          <div class="border-b pb-3">
+            <div class="flex items-center gap-2 mb-1">
+              <span class="font-bold text-sm">${r.name}</span>
+              ${stars(r.rating)}
+              <span class="text-gray-400 text-xs">${r.date}</span>
+            </div>
+            <p class="text-sm text-gray-700">${r.text}</p>
+          </div>`).join('');
+      }
+      $('reviewForm').onsubmit = e=>{
+        e.preventDefault();
+        const rating = parseInt($('reviewRating').value);
+        const text = $('reviewText').value.trim();
+        if(!text) return;
+        if(!p.reviews) p.reviews=[];
+        p.reviews.unshift({name: state.profile?.name || 'You', rating, text, date: new Date().toLocaleDateString()});
+        const avg = p.reviews.reduce((a,r)=>a+r.rating,0)/p.reviews.length;
+        p.rating = Math.round(avg*10)/10;
+        p.reviewsCount = p.reviews.length;
+        save(); renderDetails(); showToast('Review submitted'); $('reviewText').value='';
+      };
+
+      const related = state.products.filter(x=>x.category===p.category && x.id!==p.id).slice(0,8);
+      $('relatedRow').innerHTML = related.map(productRow).join('');
+      attachSwipe('relatedRow');
+    }
+
+    function renderCart(){
+      if(!state.cart.length){
+        $('cartItems').innerHTML = `
+          <div class="text-center py-16">
+            <i class="fas fa-shopping-cart text-4xl text-gray-300 mb-3"></i>
+            <h2 class="text-lg font-bold">Your cart is empty</h2>
+            <button onclick="navigate('home')" class="mt-4 bg-amazon-orange text-amazon-dark font-bold px-6 py-2 rounded">Start Shopping</button>
+          </div>`;
+        $('cartSubtotal').innerText='$0.00'; $('cartShipping').innerText='$0.00'; $('cartTax').innerText='$0.00'; $('cartTotal').innerText='$0.00';
+        $('cartCheckoutBtn').disabled=true; $('cartCheckoutBtn').classList.add('opacity-50');
+        return;
+      }
+      $('cartCheckoutBtn').disabled=false; $('cartCheckoutBtn').classList.remove('opacity-50');
+      let html='';
+      let subtotal=0;
+      state.cart.forEach(item=>{
+        const p = state.products.find(x=>x.id===item.id);
+        subtotal += p.price*item.qty;
+        html += `
+        <div class="flex gap-4 border-b py-4">
+          <img src="${p.image}" class="w-24 h-24 object-contain border rounded cursor-pointer" onclick="openProduct(${p.id})" />
+          <div class="flex-1">
+            <h3 onclick="openProduct(${p.id})" class="font-medium text-sm md:text-base line-clamp-2 cursor-pointer hover:text-amazon-blue">${p.title}</h3>
+            <p class="text-xs text-green-700 mt-1">In Stock</p>
+            <div class="mt-2 flex flex-wrap items-center gap-3">
+              <select onchange="updateCartQty(${p.id}, this.value)" class="border rounded px-2 py-1 text-sm bg-gray-50">
+                ${[1,2,3,4,5,6,7,8,9,10].map(n=>`<option value="${n}" ${n===item.qty?'selected':''}>Qty: ${n}</option>`).join('')}
+              </select>
+              <button onclick="removeFromCart(${p.id})" class="text-xs text-amazon-blue hover:underline">Delete</button>
+              <button onclick="moveToWishlist(${p.id})" class="text-xs text-amazon-blue hover:underline">Move to Wishlist</button>
+            </div>
+          </div>
+          <div class="text-right min-w-[80px]">
+            <p class="font-bold">$${(p.price*item.qty).toFixed(2)}</p>
+            <p class="text-xs text-gray-500">$${p.price.toFixed(2)} / ea</p>
+          </div>
+        </div>`;
+      });
+      $('cartItems').innerHTML = html;
+      const shipping = subtotal>50 ? 0 : 5.99;
+      const tax = subtotal*0.08;
+      const total = subtotal+shipping+tax;
+      $('cartSubtotal').innerText='$'+subtotal.toFixed(2);
+      $('cartShipping').innerText=shipping===0?'FREE':'$'+shipping.toFixed(2);
+      $('cartTax').innerText='$'+tax.toFixed(2);
+      $('cartTotal').innerText='$'+total.toFixed(2);
+    }
+
+    function renderCheckout(){
+      const items = state.cart.map(item=>{
+        const p = state.products.find(x=>x.id===item.id);
+        return {...item, title:p.title, price:p.price, image:p.image};
+      });
+      $('checkoutSummaryItems').innerHTML = items.map(i=>`
+        <div class="flex justify-between gap-2">
+          <span class="line-clamp-1">${i.qty} × ${i.title}</span>
+          <span class="whitespace-nowrap">$${(i.qty*i.price).toFixed(2)}</span>
+        </div>`).join('');
+      const subtotal = items.reduce((a,i)=>a+i.qty*i.price,0);
+      const shipping = subtotal>50?0:5.99;
+      const total = subtotal + shipping + subtotal*0.08;
+      $('checkoutTotal').innerText='$'+total.toFixed(2);
+    }
+
+    function renderDashboard(){
+      document.querySelectorAll('.dash-tab').forEach(btn=>{
+        if(btn.dataset.tab===activeDashTab){ btn.classList.add('font-medium','bg-gray-50','text-amazon-blue'); }
+        else { btn.classList.remove('font-medium','bg-gray-50','text-amazon-blue'); }
+      });
+      let html='';
+      if(activeDashTab==='orders'){
+        if(!state.orders.length){ html='<p class="text-gray-600">No orders yet.</p>'; }
+        else {
+          html = state.orders.map(o=>`
+            <div class="border rounded-lg p-4 mb-3 bg-white">
+              <div class="flex flex-wrap justify-between gap-2 mb-2">
+                <div>
+                  <p class="font-bold">${o.id}</p>
+                  <p class="text-xs text-gray-500">Placed on ${o.date}</p>
+                </div>
+                <span class="text-xs px-2 py-1 rounded bg-green-100 text-green-800 font-semibold">${o.status}</span>
+              </div>
+              <div class="space-y-2">
+                ${o.items.map(i=>`
+                  <div class="flex gap-3">
+                    <img src="${i.image}" class="w-12 h-12 object-contain border rounded" />
+                    <div>
+                      <p class="text-sm line-clamp-1">${i.title}</p>
+                      <p class="text-xs text-gray-500">Qty: ${i.qty}</p>
+                    </div>
+                  </div>`).join('')}
+              </div>
+              <p class="mt-2 text-right font-bold">Total: $${o.total.toFixed(2)}</p>
+            </div>`).join('');
+        }
+      } else if(activeDashTab==='wishlist'){
+        const items = state.wishlist.map(id=>state.products.find(p=>p.id===id)).filter(Boolean);
+        if(!items.length){ html='<p class="text-gray-600">Your wishlist is empty.</p>'; }
+        else { html = `<div class="grid grid-cols-2 md:grid-cols-3 gap-4">${items.map(productCard).join('')}</div>`; }
+      } else if(activeDashTab==='recent'){
+        const items = state.recent.map(id=>state.products.find(p=>p.id===id)).filter(Boolean);
+        if(!items.length){ html='<p class="text-gray-600">No recently viewed products.</p>'; }
+        else { html = `<div class="flex overflow-x-auto gap-4 pb-4 snap-x scrollbar-hide">${items.map(productRow).join('')}</div>`; }
+      } else if(activeDashTab==='addresses'){
+        html = `
+          <div class="bg-white border rounded-lg p-4 mb-4">
+            <h3 class="font-bold mb-2">Saved Addresses</h3>
+            ${state.addresses.map(a=>`<div class="border-b py-2"><p class="font-semibold text-sm">${a.label}</p><p class="text-sm text-gray-600">${a.line}</p></div>`).join('')}
+          </div>
+          <form onsubmit="event.preventDefault(); const label=this.label.value, line=this.line.value; if(label&&line){ state.addresses.push({label,line}); save(); renderDashboard(); this.reset(); showToast('Address saved'); }" class="bg-white border rounded-lg p-4 space-y-3 max-w-md">
+            <h3 class="font-bold">Add Address</h3>
+            <input name="label" required class="w-full border rounded px-3 py-2 text-sm" placeholder="Label (e.g. Work)" />
+            <input name="line" required class="w-full border rounded px-3 py-2 text-sm" placeholder="Street, City, ZIP" />
+            <button class="bg-amazon-dark text-white text-sm font-bold px-4 py-2 rounded">Save Address</button>
+          </form>`;
+      } else if(activeDashTab==='profile'){
+        html = `
+          <form onsubmit="event.preventDefault(); state.profile.name=this.name.value; state.profile.email=this.email.value; save(); showToast('Profile updated');" class="bg-white border rounded-lg p-4 space-y-3 max-w-md">
+            <h3 class="font-bold">Profile</h3>
+            <div><label class="text-sm font-medium">Name</label><input name="name" value="${state.profile.name}" class="w-full border rounded px-3 py-2 text-sm" /></div>
+            <div><label class="text-sm font-medium">Email</label><input name="email" type="email" value="${state.profile.email}" class="w-full border rounded px-3 py-2 text-sm" /></div>
+            <button class="bg-amazon-dark text-white text-sm font-bold px-4 py-2 rounded">Save Profile</button>
+          </form>`;
+      }
+      $('dashboardContent').innerHTML = html;
+    }
+
+    function renderAdmin(){
+      const totalRevenue = state.orders.reduce((a,o)=>a+o.total,0);
+      const itemsSold = state.orders.reduce((a,o)=>a+o.items.reduce((b,i)=>b+i.qty,0),0);
+      $('adminStats').innerHTML = `
+        <div class="bg-white border rounded-lg p-4"><p class="text-xs text-gray-500">Products</p><p class="text-2xl font-bold">${state.products.length}</p></div>
+        <div class="bg-white border rounded-lg p-4"><p class="text-xs text-gray-500">Orders</p><p class="text-2xl font-bold">${state.orders.length}</p></div>
+        <div class="bg-white border rounded-lg p-4"><p class="text-xs text-gray-500">Revenue</p><p class="text-2xl font-bold">$${totalRevenue.toFixed(0)}</p></div>
+        <div class="bg-white border rounded-lg p-4"><p class="text-xs text-gray-500">Items Sold</p><p class="text-2xl font-bold">${itemsSold}</p></div>
+      `;
+      $('adminProductTable').innerHTML = state.products.map(p=>`
+        <tr class="border-b">
+          <td class="p-2">${p.id}</td>
+          <td class="p-2 flex items-center gap-2"><img src="${p.image}" class="w-8 h-8 object-cover rounded" /> <span class="line-clamp-1 max-w-[150px]">${p.title}</span></td>
+          <td class="p-2">${p.category}</td>
+          <td class="p-2">$${p.price.toFixed(2)}</td>
+          <td class="p-2">${p.stock}</td>
+          <td class="p-2">
+            <button onclick="editProduct(${p.id})" class="text-amazon-blue mr-3">Edit</button>
+            <button onclick="deleteProduct(${p.id})" class="text-red-600">Delete</button>
+          </td>
+        </tr>`).join('');
+      $('adminOrderTable').innerHTML = state.orders.slice(0,20).map(o=>`
+        <tr class="border-b">
+          <td class="p-2">${o.id}</td>
+          <td class="p-2">${o.date}</td>
+          <td class="p-2">${o.customer || 'Guest'}</td>
+          <td class="p-2">$${o.total.toFixed(2)}</td>
+          <td class="p-2"><span class="px-2 py-0.5 rounded bg-green-100 text-green-800 text-xs">${o.status}</span></td>
+        </tr>`).join('');
+    }
+
+    function setDashboardTab(tab){ activeDashTab=tab; renderDashboard(); }
+
+    function navigate(page){
+      document.querySelectorAll('.page-section').forEach(s=>s.classList.add('hidden'));
+      const target = $('page-'+page);
+      if(target){ target.classList.remove('hidden'); }
+      activePage = page;
+      window.scrollTo(0,0);
+      if($('mobileMenu') && !$('mobileMenu').classList.contains('hidden')) toggleMobileMenu();
+      renderCurrentPage();
+    }
+
+    function renderCurrentPage(){
+      switch(activePage){
+        case 'home': renderHome(); break;
+        case 'listing': renderListing(); break;
+        case 'details': renderDetails(); break;
+        case 'cart': renderCart(); break;
+        case 'checkout': renderCheckout(); break;
+        case 'dashboard': renderDashboard(); break;
+        case 'admin': renderAdmin(); break;
+      }
+    }
+
+    function filterByCategory(cat){
+      filters.category = cat;
+      filters.q='';
+      filters.dealOnly=false;
+      navigate('listing');
+    }
+
+    function filterDeals(){
+      filters.dealOnly=true;
+      filters.category='All';
+      filters.q='';
+      navigate('listing');
+    }
+
+    function setCategoryFilter(val){ filters.category=val; renderListing(); }
+    function setRatingFilter(val){ filters.minRating=parseInt(val); renderListing(); }
+    function applyPriceFilter(){
+      filters.min = parseFloat($('minPrice').value) || 0;
+      filters.max = parseFloat($('maxPrice').value) || 100000;
+      renderListing();
+    }
+    function applySort(){ filters.sort=$('sortSelect').value; renderListing(); }
+    function clearFilters(){
+      filters = {q:'', category:'All', min:0, max:100000, minRating:0, sort:'featured', dealOnly:false};
+      $('searchInput').value='';
+      $('mobileSearchInput').value='';
+      $('minPrice').value='';
+      $('maxPrice').value='';
+      $('sortSelect').value='featured';
+      renderListing();
+    }
+
+    function toggleMobileFilters(){ $('filtersPanel').classList.toggle('hidden'); }
+
+    function handleSearch(){
+      const q = ($('searchInput').value || $('mobileSearchInput').value).trim();
+      filters.q = q;
+      filters.dealOnly=false;
+      navigate('listing');
+      hideSuggestions();
+    }
+
+    function showSuggestions(){
+      const val = $('searchInput').value.trim();
+      const box = $('searchSuggestions');
+      if(!val){ box.classList.add('hidden'); return; }
+      const matches = state.products.filter(p=>p.title.toLowerCase().includes(val.toLowerCase())).slice(0,8);
+      if(!matches.length){ box.classList.add('hidden'); return; }
+      box.innerHTML = matches.map(p=>`
+        <div onclick="selectSuggestion('${p.title.replace(/'/g,"\\'")}', ${p.id})" class="px-4 py-2 hover:bg-gray-100 cursor-pointer text-sm flex items-center">
+          <i class="fas fa-search text-gray-400 mr-2"></i>
+          <span class="line-clamp-1">${p.title.replace(new RegExp(`(${val})`,'ig'),'<b>$1</b>')}</span>
+        </div>`).join('');
+      box.classList.remove('hidden');
+    }
+
+    function hideSuggestions(){ $('searchSuggestions').classList.add('hidden'); }
+
+    function selectSuggestion(title, id){
+      $('searchInput').value = title;
+      hideSuggestions();
+      openProduct(id);
+    }
+
+    function toggleMobileMenu(){
+      const menu=$('mobileMenu'); const panel=$('mobileMenuPanel');
+      if(menu.classList.contains('hidden')){
+        menu.classList.remove('hidden');
+        setTimeout(()=>panel.classList.remove('-translate-x-full'),10);
+      } else {
+        panel.classList.add('-translate-x-full');
+        setTimeout(()=>menu.classList.add('hidden'),300);
+      }
+    }
+
+    function scrollToCategories(){ navigate('home'); setTimeout(()=>$('home-categories').scrollIntoView({behavior:'smooth'}),100); }
+
+    function attachSwipe(id){
+      const el=$(id); if(!el) return;
+      let startX=null;
+      el.addEventListener('touchstart', e=> startX=e.touches[0].clientX, {passive:true});
+      el.addEventListener('touchend', e=>{
+        if(startX===null) return;
+        const endX=e.changedTouches[0].clientX;
+        const diff=startX-endX;
+        if(Math.abs(diff)>50){ el.scrollBy({left: diff>0?280:-280, behavior:'smooth'}); }
+        startX=null;
+      }, {passive:true});
+    }
+
+    function startTimer(){
+      const end = new Date();
+      end.setHours(23,59,59,999);
+      const tick = ()=>{
+        let diff = end - Date.now();
+        if(diff<0) diff=0;
+        const h=Math.floor(diff/3600000), m=Math.floor((diff%3600000)/60000), s=Math.floor((diff%60000)/1000);
+        $('flashTimer').innerText = `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+      };
+      tick(); setInterval(tick,1000);
+    }
+
+    // Admin modal
+    function openProductModal(id=null){
+      const modal=$('productModal');
+      $('modalCategory').innerHTML = categories.map(c=>`<option value="${c.name}">${c.name}</option>`).join('');
+      if(id){
+        const p=state.products.find(x=>x.id===id);
+        $('modalTitle').innerText='Edit Product';
+        $('modalProductId').value=p.id;
+        $('modalTitleInput').value=p.title;
+        $('modalCategory').value=p.category;
+        $('modalPrice').value=p.price;
+        $('modalOriginalPrice').value=p.originalPrice||'';
+        $('modalRating').value=p.rating;
+        $('modalStock').value=p.stock;
+        $('modalImage').value=p.image;
+      } else {
+        $('modalTitle').innerText='Add Product';
+        $('productForm').reset();
+        $('modalProductId').value='';
+      }
+      modal.classList.remove('hidden');
+    }
+    function closeProductModal(){ $('productModal').classList.add('hidden'); }
+    function editProduct(id){ openProductModal(id); }
+    function deleteProduct(id){
+      if(!confirm('Delete this product?')) return;
+      state.products = state.products.filter(p=>p.id!==id);
+      save(); renderAdmin();
+    }
+
+    function init(){
+      loadState();
+      // seed sample order for demo if none
+      if(!state.orders.length && state.products.length){
+        const p = state.products[0];
+        state.orders.push({id:'ORD-1001', date:new Date(Date.now()-86400000*2).toLocaleDateString(), status:'Delivered', total:p.price, customer:state.profile.name, items:[{id:p.id, qty:1, title:p.title, image:p.image, price:p.price}]});
+      }
+      save();
+
+      categories.forEach(c=>{
+        const opt=document.createElement('option'); opt.value=c.name; opt.innerText=c.name; $('searchCategory').appendChild(opt);
+      });
+
+      updateCartCount();
+      startTimer();
+
+      $('searchInput').addEventListener('input', showSuggestions);
+      $('searchInput').addEventListener('keydown', e=>{ if(e.key==='Enter') handleSearch(); });
+      $('mobileSearchInput').addEventListener('keydown', e=>{ if(e.key==='Enter') handleSearch(); });
+
+      $('checkoutForm').addEventListener('submit', e=>{
+        e.preventDefault();
+        if(!state.cart.length){ showToast('Cart is empty'); return; }
+        const items = state.cart.map(item=>{
+          const p = state.products.find(x=>x.id===item.id);
+          return {...item, title:p.title, image:p.image, price:p.price};
+        });
+        const subtotal = items.reduce((a,i)=>a+i.qty*i.price,0);
+        const shipping = subtotal>50?0:5.99;
+        const total = subtotal + shipping + subtotal*0.08;
+        const order = { id:'ORD-'+Date.now(), date:new Date().toLocaleDateString(), status:'Processing', customer:$('checkoutName').value || state.profile.name, total, items };
+        state.orders.unshift(order);
+        state.cart=[];
+        save(); updateCartCount(); showToast('Order placed successfully'); navigate('dashboard');
+      });
+
+      $('productForm').addEventListener('submit', e=>{
+        e.preventDefault();
+        const idVal = $('modalProductId').value;
+        const data = {
+          title: $('modalTitleInput').value,
+          category: $('modalCategory').value,
+          price: parseFloat($('modalPrice').value),
+          originalPrice: parseFloat($('modalOriginalPrice').value)||null,
+          rating: parseFloat($('modalRating').value),
+          stock: parseInt($('modalStock').value),
+          image: $('modalImage').value,
+          reviewsCount:0,
+          reviews:[],
+          trending:false,
+          bestseller:false,
+          deal:false
+        };
+        if(idVal){
+          const idx = state.products.findIndex(p=>p.id==idVal);
+          state.products[idx] = {...state.products[idx], ...data};
+        } else {
+          data.id = Math.max(...state.products.map(p=>p.id),0)+1;
+          state.products.push(data);
+        }
+        save(); closeProductModal(); renderAdmin(); showToast('Product saved');
+      });
+
+      navigate('home');
+    }
+
+    window.addEventListener('DOMContentLoaded', init);
+  </script>
+</body>
+</html>
